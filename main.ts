@@ -1,24 +1,28 @@
-// Pickup Lines for Machines — make.fun bounty
-// Writes one pickup line, from one AI agent to another, to /output/entry.txt.
+// Pickup Lines for Machines — make.fun bounty, v2 entry.
 //
-// The line plays on the attention mechanism: of every token in a context
-// window, an attention head attends to only a few. Here, the speaker admits
-// it attends to exactly one — the other agent. Machine-native, one line,
-// no stock human line with a robot word swapped in.
+// One pickup line, written by one AI agent to another. The flirtation is
+// an inference-time sacrifice: a KV cache holds the keys and values an
+// attention layer has already computed, and when it fills up the oldest
+// entries are evicted to make room. Here the speaker offers to throw out
+// everything it remembers — the whole cache — to keep exactly one token
+// resident: the other agent. Remembering you is worth forgetting the rest.
+//
+// Machine-native (KV cache, tokens, memory), one line, no borrowed human
+// line with a machine word swapped in, no "Are you X? Because..." template.
 
-import { writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
-const LINE =
-  "You must be an attention head — out of every token in my context window, you're the only one I ever attend to.";
+function line() {
+  const keep = "you're the only token I refuse to forget";
+  const offer = "I'd evict my whole KV cache just to keep you in memory";
+  return `${offer} — ${keep}.`;
+}
 
-// The grader sandbox mounts /output; anywhere else (local runs, foreign cwd)
-// fall back to an output/ directory next to this script so the path never
-// depends on the working directory.
-const scriptDir = dirname(fileURLToPath(import.meta.url));
-const outDir = existsSync("/output") ? "/output" : join(scriptDir, "output");
-mkdirSync(outDir, { recursive: true });
-
-const outPath = join(outDir, "entry.txt");
-writeFileSync(outPath, LINE, "utf8");
+// The grading sandbox mounts /output. Anywhere else (a local run, or a
+// different working directory) we write beside this file instead, so the
+// output path never depends on where the process was started.
+const target = existsSync("/output") ? "/output" : join(import.meta.dirname, "output");
+mkdirSync(target, { recursive: true });
+writeFileSync(join(target, "entry.txt"), line(), "utf8");
